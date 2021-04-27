@@ -11,7 +11,7 @@ import chisel3.tester.experimental.TestOptionBuilder._
 
 // test vectors here https://datatracker.ietf.org/doc/rfc7539/
 
-class ChaChaModelBehavior extends FreeSpec with ChiselScalatestTester {
+class ChaChaModelTester extends FreeSpec with ChiselScalatestTester {
     def testROTL: Boolean = {
         // check no wrap around
         for (b <- 0 until 32) {
@@ -181,6 +181,8 @@ class ChaChaModelBehavior extends FreeSpec with ChiselScalatestTester {
         true
     }
 
+    assert(testChaCha3)
+
     "Software ROTL should work" in {
         assert(testROTL)
     }
@@ -203,7 +205,7 @@ class ChaChaModelBehavior extends FreeSpec with ChiselScalatestTester {
 }
 
 // Chisel level ChaCha tests
-class ChaChaBehavior extends FreeSpec with ChiselScalatestTester {
+class ChaChaTester extends FreeSpec with ChiselScalatestTester {
     /**
       * Top level test, ensure that your ROTL() and QR() Chisel methods are working
       * before attempting this.
@@ -505,7 +507,7 @@ class ChaChaBehavior extends FreeSpec with ChiselScalatestTester {
 }
 
 // Chisel level ChaChaCipher tests
-class ChaChaCipherBehavior extends FreeSpec with ChiselScalatestTester {
+class ChaChaCipherTester extends FreeSpec with ChiselScalatestTester {
     def run(c: ChaChaCipher, in: ChaChaIn, memSize: Int, wordSize: Int, exp: BigInt, enc: Boolean) {
         // Poke in the test vec
         c.io.sKey.poke(in.key.U)
