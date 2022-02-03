@@ -1,5 +1,6 @@
 package hw4
 
+
 object MatMulModel {
   type Matrix = Seq[Seq[Int]]
 
