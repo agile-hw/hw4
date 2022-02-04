@@ -213,4 +213,8 @@ class MatMulMCTester extends AnyFlatSpec with ChiselScalatestTester {
   it should "multiply in4x2 x in2x4 (full parallelism)" in {
     doMatMulMCTest(MatMulTestData.in4x2, MatMulTestData.in2x4,4,4)
   }
+
+  it should "multiply in4x2 x in2x4 (full parallelism, half transfers)" in {
+    doMatMulMCTest(MatMulTestData.in4x2, MatMulTestData.in2x4,8,4)
+  }
 }
