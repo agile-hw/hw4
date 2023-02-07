@@ -6,7 +6,7 @@ import chisel3.util._
 
 
 case class MatMulParams(m: Int, k: Int, n: Int, parallelism: Int = 1, cyclesPerTransfer: Int = 1) {
-  // A (m x k) X B (k x n) = C (m x k)
+  // A (m x k) X B (k x n) = C (m x n)
   val aRows: Int = m
   val aCols: Int = k
   val bRows: Int = k
