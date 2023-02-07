@@ -1,20 +1,22 @@
 Homework 4 - Matrix Multiplication
 =======================
-In this assignment, you will be implementing modules to perform [matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication). For simplicity, all elements will be 32-bit signed types, which corresponds to an `Int` in Scala and a `SInt(32.W)` in Chisel. To break up this big tasks, we will break it up into 3 problems to make each step more manageable. In the first problem, you will implement matrix multiplication in Scala, and we will use that as a model for correct functional behavior to work with our tester. In the second problem, you will implement a simplified multiplication unit that accepts the entire matrix inputs in a single cycle (normally unreasonable). In the second problem, you will relax that constraint and develop a module that accepts the matrices over multiple cycles.
+In this assignment, you will be implementing modules to perform [matrix multiplication](https://en.wikipedia.org/wiki/Matrix_multiplication). For simplicity, all elements will be 32-bit signed types, which corresponds to an `Int` in Scala and a `SInt(32.W)` in Chisel. We will break up this big task into 3 problems to make each step more manageable. In the first problem, you will implement matrix multiplication in Scala, and we will use that as a model for correct functional behavior to work with our tester. In the second problem, you will implement a simplified multiplication unit that accepts the entire matrix inputs in a single cycle (normally unreasonable). In the third problem, you will relax that constraint and develop a module that accepts the matrices over multiple cycles.
 
 
 
 # Problem 1 -  Functional Model - MatMulModel (20 pts)
 
-First, you will need to make a (Scala) model (`MatMulModel`) to double check we have the right answer. Since matrix multiplication is a common operation, we could probably find an external library to do it, but we will do it ourselves to practice the functional programming. Be sure your implementation uses _immutable_ data structures (e.g. immutable Seq) and has no uses of `var`.
+First, you will need to make a (Scala) model `MatMulModel` (in `src/test/scala/hw4/MatMulModel.scala`) to double check we have the right answer. Since matrix multiplication is a common operation, we could probably find an external library to do it, but we will do it ourselves to practice the functional programming. Be sure your implementation uses _immutable_ data structures (e.g. immutable Seq) and has no uses of `var`.
+
+Note, we use the case class `MatMulParams` to hold the problem parameters, and it is defined in `src/main/scala/hw4/MatMulSC`. You can add to the internals of the case class, but please do not modify what is provided.
 
 
 
 # Problem 2 -  Single-Cycle Transfer Version - MatMulSC (30 pts)
 
-With the model in hand, you are ready to implement `MatMulSC`, a Chisel generator for matrix multiplication. It is parameterized on the matrix dimensions and the amount of parallelism it supports. We use a case class (`MatMulParams`) to tidy up the parameters. You can add to the internals of the case class, but please do not modify what is provided.
+With the model in hand, you are ready to implement `MatMulSC` (in `src/main/scala/hw4/MatMulSC.scala`), a Chisel generator for matrix multiplication. It is parameterized on the matrix dimensions and the amount of parallelism it supports.
 
-A MatMulSC will be instantiated for specific input and output matrix size parameters (from the case class), and we will use `Decoupled` and `Valid` for its IO. The user will request a matrix multiplication by using the matrix inputs, but the multiplication will not start until the input is valid and the MatMul is ready. Once the MatMul starts a multiplication, it should save the input matrices in internal registers and mark its input as not ready. When the multiplication is complete, the matrix output should be marked as valid, and the input port should be marked as ready again. When the system initially starts up and is idle, it is ok for the MatMulSC to initially send out junk data marked as valid. From the first multiplication onwards, when the output is valid, it should hold the result of the most recently completed multiplication.
+A MatMulSC will be instantiated for specific input and output matrix size parameters (from the case class), and we will use `Decoupled` and `Valid` for its IO. The user will request a matrix multiplication by using the matrix inputs, but the multiplication will not start until the input is valid and the MatMul is ready (i.e. the input "fires"). Once the MatMul starts a multiplication, it should save the input matrices in internal registers and mark its input as not ready. When the multiplication is complete, the matrix output should be marked as valid, and the input port should be marked as ready again. When the system initially starts up and is idle, it is ok for the MatMulSC to initially send out junk data marked as valid. From the first multiplication onwards, when the output is valid, it should hold the result of the most recently completed multiplication.
 
 For the multiplication, we recommend using the classic triple-loop nest that computes output elements in row-major order. For our formulation, we are computing _A x B = C_ in which A is m x k, B is k x n, so C is m x n. Thus, the entire computation will take _m x k x n_ cycles once the inputs are loaded.
 ```
@@ -39,7 +41,7 @@ To clarify, the entire input matrices will be transfered in a single-cycle, but 
 
 # Problem 3 -  Multi-Cycle Transfer Version - MatMulMC (50 pts)
 
-We will revise our `MatMulSC` module from Problem 2 to improve its scalability. Our original MatMulSC loaded the input matrices in a single cycle which may be impractical for matrices of non-trivial size. Instead, we will add a parameter `cyclesPerTransfer` which will set how many cycles it takes to load in the input matrices as well as output the resulting product matrix. By performing the transfers over multiple cycles, we can greatly reduce the bandwidth required. Although this change may sound simple, it will require us to generalize and revise several parts of the MatMulSC design to make this `MatMulMC`.
+We will revise our `MatMulSC` module from Problem 2 to improve its scalability. Our original MatMulSC loaded the input matrices in a single cycle which may be impractical for matrices of non-trivial size. Instead, we will add a parameter `cyclesPerTransfer` which will set how many cycles it takes to load in the input matrices as well as output the resulting product matrix. By performing the transfers over multiple cycles, we can greatly reduce the bandwidth required. Although this change may sound simple, it will require us to generalize and revise several parts of the MatMulSC design to make this `MatMulMC` (in `src/main/scala/hw4/MatMulMC.scala`).
 
 ### Input/Output Behavior
 Performing a matrix multiplication will go through the following steps:
