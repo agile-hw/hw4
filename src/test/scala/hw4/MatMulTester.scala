@@ -167,6 +167,9 @@ class MatMulMCTester extends AnyFlatSpec with ChiselScalatestTester {
         dut.io.outBlock.bits.zip(cChunk).foreach{ case (dutIO, elem) => dutIO.expect(elem.S) }
         dut.clock.step()
       }
+      if(cyclesPerTransfer > cChunked.length) {
+        dut.clock.step(cyclesPerTransfer - cChunked.length)
+      }
       dut.io.in.ready.expect(true.B)
     }
     true
