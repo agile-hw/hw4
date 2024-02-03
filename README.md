@@ -27,14 +27,14 @@ for (r in C.nRows)
       C[r][c] += A[r][k] * B[k][c]
 ```
 
-The _parallelism_ parameter will control how many output elements are computed on per cycle. They should be computed row-major, so naturally the number of columns in C (the output matrix) places an upper bound on the parallelism. You can assume the parallelism evenly divides the number of columns in C.
+The _parallelism_ parameter will control how many output elements are computed on per cycle. They should be computed row-major, so naturally the number of columns in C (the output matrix) places an upper bound on the parallelism. You can assume the parallelism parameter evenly divides the number of columns in C.
 
 To clarify, the entire input matrices will be transfered in a single-cycle, but the computation of the product may take multiple cycles (depends on dimensions and parallelism).
 
 
 ### Tips
-* Use this problem as an opportunity to _progressively_ develop/extend things. The test cases are provided in order of increasing design complexity. For example, implementing a system that can only do matrix-vector is simpler than matrix-matrix. Tackle parallelism last.
-* We recommend you make use of Chisel's `Counter` object, but you may want to use caution with its `wrap` output. It indicates that the counter is at its maximum value _and_ the count enable is high so the counter will _wrap_ around next cycle. If you use wrap in logic controlling the counter, you may introduce a combinational loop. You may be happiest with manually checking if the counter is at its maximum value.
+* Use this problem as an opportunity to _progressively_ develop/extend things. The test cases are provided in order of increasing design complexity. For example, implementing a system that can only do matrix-vector is simpler than matrix-matrix (Hint: There are test cases that use a 1-row or 1-column matrix). Tackle parallelism last.
+* We recommend you make use of Chisel's `Counter` object, but you may want to use caution with its `wrap` output. It indicates that the counter is at its maximum value _and_ the count enable is high so the counter will _wrap_ around next cycle. If you use `wrap` in logic controlling the counter, you may introduce a combinational loop. You may be happiest with manually checking if the counter is at its maximum value.
 * If two Vecs have exactly the same types and lengths, you can connect them all at once (with `:=`).
 
 
@@ -45,11 +45,11 @@ We will revise our `MatMulSC` module from Problem 2 to improve its scalability. 
 
 ### Input/Output Behavior
 Performing a matrix multiplication will go through the following steps:
-* _Idle_ - the MatMul module indicates it is idle (ready to accept work) with `io.in.ready` set high
-* _Loading a matrix in_ - the user sets `io.in.valid` to high to indicate the availability of work. When `io.in.valid` and `io.in.ready` are high the same cycle, the next cycle starts the loading process for the input matrices. The matrices are read in over `cyclesPerTransfer` cycles in a row-major order (via `io.in.bits.aBlock` and `io.in.bits.bBlock`). You can assume the amount transfered in a cycle is never greater than a row (may be less).
-* _Multiplying the matrices_ - once the matrices are loaded in, the MatMul unit immediately starts performing the matrix multiplication
-* _Output the result_ - as soon as the multiplication finishes, the MatMul unit outputs the product matrix over `cyclesPerTransfer` (via `io.outBlock.bits`) cycles while asserting `io.outBlock.valid`
-* _Change from Problem2_ - MatMulMC should only have `io.outBlock.valid` set high while it is streaming out the product matrix over `cyclesPerTransfer` cycles. Otherwise `io.outBlock.valid` should be low.
+* _Idle_ - the MatMulMC module indicates it is idle (ready to accept work) with `io.in.ready` set high
+* _Loading a matrix in_ - the user sets `io.in.valid` to high to indicate the availability of work. When `io.in.valid` and `io.in.ready` are high the same cycle, the _next cycle_ starts the loading process for the input matrices. The matrices are read in over `cyclesPerTransfer` cycles in a row-major order (via `io.in.bits.aBlock` and `io.in.bits.bBlock`). You can assume the amount transfered in a cycle is never greater than a row. If the transfer amount is less than a row, it will evenly divide the row size.
+* _Multiplying the matrices_ - once the matrices are loaded in, the MatMulMC unit immediately starts performing the matrix multiplication
+* _Output the result_ - as soon as the multiplication finishes, the MatMulMC unit outputs the product matrix over `cyclesPerTransfer` (via `io.outBlock.bits`) cycles while asserting `io.outBlock.valid`. Please note, in some cases (e.g. single output element), the output will be transferred in fewer than `cyclesPerTransfer` cycles. As soon as the transfer is complete (even if less than `cyclesPerTransfer` cycles), the system should be ready to take a new problem and indicate that by setting `io.in.ready`.
+* _Change from Problem 2_ - MatMulMC should only have `io.outBlock.valid` set high while it is streaming out the product matrix over `cyclesPerTransfer` cycles. Otherwise `io.outBlock.valid` should be low.
 
 ### Tips
 * To keep your design organized, avoid repetition, and ease unit testing, you may want to consider making submodules or even Scala functions to encapsulate commonly performed operations. For example, can you see a way to share code for loading in the two input matrices?

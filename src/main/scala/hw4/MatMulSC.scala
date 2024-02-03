@@ -40,20 +40,17 @@ case class MatMulParams(m: Int, k: Int, n: Int, parallelism: Int = 1, cyclesPerT
 }
 
 
-class MatMulIO(p: MatMulParams) extends Bundle {
-  val in = Flipped(Decoupled(new Bundle {
-    val a = Vec(p.aRows, Vec(p.aCols, SInt(p.w)))
-    val b = Vec(p.bRows, Vec(p.bCols, SInt(p.w)))
-  }))
-  val out = Valid(Vec(p.cRows, Vec(p.cCols, SInt(p.w))))
-}
-
-
 class MatMulSC(p: MatMulParams) extends Module {
+  val io = IO(new Bundle {
+    val in = Flipped(Decoupled(new Bundle {
+      val a = Vec(p.aRows, Vec(p.aCols, SInt(p.w)))
+      val b = Vec(p.bRows, Vec(p.bCols, SInt(p.w)))
+    }))
+    val out = Valid(Vec(p.cRows, Vec(p.cCols, SInt(p.w))))
+  })
   require(p.cyclesPerTransfer == 1)
   require(p.cCols >= p.parallelism)
   require(p.cCols % p.parallelism == 0)
-  val io = IO(new MatMulIO(p))
   // BEGIN SOLUTION
   ???
 }
