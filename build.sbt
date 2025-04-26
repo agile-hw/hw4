@@ -1,15 +1,25 @@
-ThisBuild / scalaVersion     := "2.13.10"
-ThisBuild / version          := "0.2.0"
+ThisBuild / scalaVersion     := "2.13.14"
+ThisBuild / version          := "0.1.0"
 ThisBuild / organization     := "UCSC-AHD"
 
-val chiselVersion = "3.6.0"
+
+val chiselVersion = "3.6.1"
+
+
+// The following sets it up such that when you run sbt ...
+//   Grader / test you run all tests that end in "Grader"
+//   test you run all tests that don't end in "Grader"
+lazy val Grader = config("grader") extend(Test)
+def endsWithGrader(name: String): Boolean = name endsWith "Grader"
+lazy val scalatest = "org.scalatest" %% "scalatest" % "3.2.15"
 
 lazy val root = (project in file("."))
-  .settings(
-    name := "hw4",
+.configs(Grader)
+	.settings(
+		name := "hw4",
     libraryDependencies ++= Seq(
       "edu.berkeley.cs" %% "chisel3" % chiselVersion,
-      "edu.berkeley.cs" %% "chiseltest" % "0.6.0" % "test"
+      "edu.berkeley.cs" %% "chiseltest" % "0.6.2" % "test"
     ),
     scalacOptions ++= Seq(
       "-language:reflectiveCalls",
@@ -18,6 +28,12 @@ lazy val root = (project in file("."))
       "-Xcheckinit",
     ),
     addCompilerPlugin("edu.berkeley.cs" % "chisel3-plugin" % chiselVersion cross CrossVersion.full),
-  )
 
-libraryDependencies += "org.scalatestplus" %% "junit-4-13" % "3.2.15.0" % "test"
+		// For Gradescope tests
+		libraryDependencies += "org.scalatestplus" %% "junit-4-13" % "3.2.15.0" % "test",
+
+    inConfig(Grader)(Defaults.testTasks),
+		libraryDependencies += scalatest % Grader,
+    Grader / testOptions := Seq(Tests.Filter(endsWithGrader)),
+		Test / testOptions := Seq(Tests.Filter(!endsWithGrader(_))),
+ )

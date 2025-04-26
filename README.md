@@ -8,7 +8,7 @@ In this assignment, you will be implementing modules to perform [matrix multipli
 
 First, you will need to make a (Scala) model `MatMulModel` (in `src/test/scala/hw4/MatMulModel.scala`) to double check we have the right answer. Since matrix multiplication is a common operation, we could probably find an external library to do it, but we will do it ourselves to practice the functional programming. Be sure your implementation uses _immutable_ data structures (e.g. immutable Seq) and has no uses of `var`.
 
-Note, we use the case class `MatMulParams` to hold the problem parameters, and it is defined in `src/main/scala/hw4/MatMulSC`. You can add to the internals of the case class, but please do not modify what is provided.
+Note, we use the case class `MatMulParams` to hold the problem parameters, and it is defined in `src/main/scala/hw4/MatMulSC.scala`. You can add to the internals of the case class, but please do not modify what is provided.
 
 
 
@@ -27,9 +27,9 @@ for (r in C.nRows)
       C[r][c] += A[r][k] * B[k][c]
 ```
 
-The _parallelism_ parameter will control how many output elements are computed on per cycle. They should be computed row-major, so naturally the number of columns in C (the output matrix) places an upper bound on the parallelism. You can assume the parallelism parameter evenly divides the number of columns in C.
+The _parallelism_ parameter will control how many output elements are computed on per cycle, i.e. the number of multipliers. They should be computed row-major, so naturally the number of columns in C (the output matrix) places an upper bound on the parallelism. You can assume the parallelism parameter evenly divides the number of columns in C.
 
-To clarify, the entire input matrices will be transfered in a single-cycle, but the computation of the product may take multiple cycles (depends on dimensions and parallelism).
+To clarify, the entire input matrices will be transferred in a single cycle, but the computation of the product may take multiple cycles (depends on dimensions and parallelism).
 
 
 ### Tips
